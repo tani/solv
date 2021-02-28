@@ -6,14 +6,31 @@ Thus, it might be slow if we input the large proposition.
 ## Example
 
 ```
-$ solv ipc 'imply(p, not(not(p)))'
+$ solv ipc 'p' 'not(not(p))'
 unprobable
 $ echo $? # Exit status
 1
-$ solv cpc 'imply(p, not(not(p)))'
+$ solv cpc 'p' 'not(not(p))'
 probable
 $ echo $? # Exit status
 0
+```
+
+## Build
+
+### Option 1. Single executable
+
+```
+$ git clone git://gtihub.com/tani/solv
+$ make -C solv
+$ cp solv/solv path/to/bin/solv
+```
+
+### Option 2. Symbolic link to the script
+
+```
+$ git clone git://gtihub.com/tani/solv
+$ ln -s solv/src/solv.pl path/to/bin/solv
 ```
 
 ## Q&A
