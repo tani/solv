@@ -1,3 +1,4 @@
+:- module(cpc, [cpc_probable/2]).
 :- use_module(library(lists)).
 
 path([imply(A, B)|C], P) :-
@@ -28,3 +29,6 @@ path([], []).
 inconsistent(P) :-
 	member(A, P),
 	member(not(A), P).
+
+cpc_probable(Assumptions, Conclusions) :-
+	forall(member(C, Conclusions), forall(path([not(C)|Assumptions], P), inconsistent(P))).
