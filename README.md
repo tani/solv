@@ -6,23 +6,12 @@ Thus, it might be slow if we input the large proposition.
 ## Example
 
 ```
-$ solv --ipc <<< 'imply(p, not(not(p)))'
-Unprobable
-
-Relation
-w1, w2
-w, w1
-
-Path
-w |=/= imply(not(not(p)), p)
-w1 |=== not(not(p))
-w1 |=/= not(p)
-w2 |=== p
-w1 |=/= p
+$ solv ipc 'imply(p, not(not(p)))'
+unprobable
 $ echo $? # Exit status
 1
-$ solv --cpc <<< "imply(p, not(not(p)))"
-Probable
+$ solv cpc 'imply(p, not(not(p)))'
+probable
 $ echo $? # Exit status
 0
 ```
