@@ -1,10 +1,10 @@
 all: solv
 
-data: cpc.pl ipc.pl solv.pl
+data: src/cpc.pl src/ipc.pl src/solv.pl
 	tar -zcf data $^
 
-solv: data header.bash
-	cat header.bash data > $@
+solv: src/cli.sh data
+	cat $^ > $@
 	chmod +x $@
 
 .PHONY: clean
