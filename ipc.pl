@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 path([[and(A, B), W, t]|X], R, [[and(A, B), W, t]|P]) :-
 	path([[A, W, t], [B, W, t]|X], R, P).
 path([[and(A, B), W, f]|X], R, [[and(A, B), W, f]|P]) :-
@@ -13,12 +15,12 @@ path([[imply(A, B), W, t]|X], R, [[imply(A, B), W, t]|P]) :-
 	path([[A, W, f]|X], R, P);
 	path([[B, W, t]|X], R, P).
 path([[imply(A, B), W, f]|X], [[W,V]|R], [[imply(A, B), W, f]|P]) :-
-	gensym(w, V), 
+	V is W+1,
 	path([[A, V, t], [B, V, f]|X], R, P).
 path([[not(A), W, t]|X], R, [[not(A), W, t]|P]) :-
 	path([[A, W, f]|X], R, P).
 path([[not(A), W, f]|X], [[W,V]|R], [[not(A), W, f]|P]) :-
-	gensym(w, V), 
+	V is W+1,
 	path([[A, V, t]|X], R, P).
 path([[A, W, t]|X], R, [[A, W, t]|P]) :-
 	atom(A), 
