@@ -4,10 +4,6 @@
 :- use_module('cpc.pl').
 :- initialization(main, main).
 
-probable(System, Assumptions, Conclusions) :-
-	System = ipc -> ipc_probable(Assumptions, Conclusions);
-	System = cpc -> cpc_probable(Assumptions, Conclusions).
-
 main([help|_]) :- !,
 	writeln('solv is a CPC/IPC theorem prover based on tableaux.'),
 	nl,
@@ -23,9 +19,14 @@ main([help|_]) :- !,
 	writeln('    <variable>   ::= a | b | ...'),
 	halt(0).
 
-main(Argv) :-
-	maplist(term_to_atom, [System,Conclusion|Assumptions], Argv),
-	(probable(System, Assumptions, [Conclusion])
+main([ipc|Argv]) :-
+	maplist(term_to_atom, [Conclusion|Assumptions], Argv),
+	ipc_probable(Assumptions, [Conclusion])
 	 -> (write(probable), halt(0))
-          ; (write(unprobable), halt(1))).
+          ; (write(unprobable), halt(1)).
 
+main([cpc|Argv]) :-
+	maplist(term_to_atom, [Conclusion|Assumptions], Argv),
+	cpc_probable(Assumptions, [Conclusion])
+	 -> (write(probable), halt(0))
+          ; (write(unprobable), halt(1)).
