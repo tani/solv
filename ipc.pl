@@ -12,13 +12,15 @@ path([[or(A, B), W, t]|X], [[or(A, B), W, t]|P]) :-
 path([[or(A, B), W, f]|X], [[or(A, B), W, f]|P]) :-
 	path([[A, W, f], [B, W, f]|X], P).
 path([[imply(A, B), W, t]|X], [[imply(A, B), W, t]|P]) :-
-	path([[A, W, f]|X], P);
-	path([[B, W, t]|X], P).
+	V is W+1,
+	(path([[A, V, f]|X], P);
+	 path([[B, V, t]|X], P)).
 path([[imply(A, B), W, f]|X], [[imply(A, B), W, f]|P]) :-
 	V is W+1,
 	path([[A, V, t], [B, V, f]|X], P).
 path([[not(A), W, t]|X], [[not(A), W, t]|P]) :-
-	path([[A, W, f]|X], P).
+	V is W+1,
+	path([[A, V, f]|X], P).
 path([[not(A), W, f]|X], [[not(A), W, f]|P]) :-
 	V is W+1,
 	path([[A, V, t]|X], P).
