@@ -1,114 +1,80 @@
 % -*- mode: prolog -*-
-% 
-% This file is part of the solv distribution (https://github.com/tani/solv).
-% Copyright (c) 2021 TANIGUCHI Masaya.
-% 
-% This program is free software: you can redistribute it and/or modify  
-% it under the terms of the GNU General Public License as published by  
-% the Free Software Foundation, version 3.
-% 
-% This program is distributed in the hope that it will be useful, but 
-% WITHOUT ANY WARRANTY; without even the implied warranty of 
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
-% General Public License for more details.
-% 
-% You should have received a copy of the GNU General Public License 
-% along with this program. If not, see <http://www.gnu.org/licenses/>.
-% 
-
-:- module(ipc, [ipc_probable/2]).
-:- use_module(library(lists)).
 
 shuffle(X, Y) :-
     append([L, [M], R], X),
     append([[M], L, R], Y).
 shuffle([], []).
 
-reach(S, S, R) :-
-    flatten(R, Ws),
-    list_to_set(Ws, Vs),
-    member(S, Vs).
-reach(S, T, R) :-
-    member([S, T], R).
-reach(S, T, R) :-
-    member([S, U], R),
-    reach(U, T, R).
+truthy(truthy(_)).
+truthy(X, truthy(X)).
 
-tree([label(and(A, B), W, t)|X], node(label(and(A, B), W, t), [C]), R) :-
-    shuffle([label(A, W, t), label(B, W, t)|X], Y),
-    tree(Y, C, R).
+falsy(truthy(_)).
+falsy(X, falsy(X)).
 
-tree([label(and(A, B), W, f)|X], node(label(and(A, B), W, f), [C1, C2]), R) :-
-    shuffle([label(A, W, f)|X], Y1),
-    shuffle([label(B, W, f)|X], Y2),
-    tree(Y1, C1, R),
-    tree(Y2, C2, R).
+tree([truthy(A)|_], node(truthy(A), [close]), P) :-
+    member(falsy(A), P), !.
 
-tree([label(or(A, B), W, t)|X], node(label(or(A, B), W, t), [C1, C2]), R) :-
-    shuffle([label(A, W, t)|X], Y1),
-    shuffle([label(B, W, t)|X], Y2),
-    tree(Y1, C1, R),
-    tree(Y2, C2, R).
+tree([falsy(A)|_], node(falsy(A), [close]), P) :-
+    member(truthy(A), P), !.
 
-tree([label(or(A, B), W, f)|X], node(label(or(A, B), W, f), [C]), R) :-
-    shuffle([label(A, W, f), label(B, W, f)|X], Y),
-    tree(Y, C, R).
+tree([truthy(not(A))|X], node(truthy(not(A)), [M]), P) :-
+    shuffle([falsy(A)|X], Y),
+    tree(Y, M, [truthy(not(A))|P]).
 
-tree([label(imply(A, B), W, t)|X], node(label(imply(A, B), W, t), [C1, C2]), R) :-
-    findall(L, (reach(W, V, R), L=label(A, V, f)), Y1),
-    findall(L, (reach(W, V, R), L=label(B, V, t)), Y2),
-    append(X, Y1, Z1),
-    append(X, Y2, Z2),
-    shuffle(Z1, U1),
-    shuffle(Z2, U2),
-    tree(U1, C1, R),
-    tree(U2, C2, R).
+tree([falsy(not(A))|X], node(falsy(not(A)), [M]), P) :-
+    shuffle([truthy(A)|X], Y),
+    include(truthy, Y, Z),
+    include(truthy, P, Q),
+    tree(Z, M, Q).
 
-tree([label(imply(A, B), W, f)|X], node(label(imply(A, B), W, f), [C]), R) :-
-    gensym(w_, V),
-    shuffle([label(A, V, t), label(B, V, f)|X], Y),
-    tree(Y, C, [[W,V]|R]).
+tree([truthy(and(A, B))|X], node(truthy(and(A, B)), [M]), P) :-
+    shuffle([truthy(A), truthy(B)|X], Y),
+    tree(Y, M, [truthy(and(A, B))|P]).
 
-tree([label(not(A), W, t)|X], node(label(not(A), W, t), [C]), R) :-
-    findall(L, (reach(W, V, R), L=label(A, V, f)), Y),
-    append(X, Y, Z),
-    shuffle(Z, U),
-    tree(U, C, R).
+tree([falsy(and(A, B))|X], node(falsy(and(A, B)), [L, R]), P) :-
+    shuffle([falsy(A)|X], Y1),
+    shuffle([falsy(B)|X], Y2),
+    tree(Y1, L, [falsy(and(A, B))|P]),
+    tree(Y2, R, [falsy(and(A, B))|P]).
 
-tree([label(not(A), W, f)|X], node(label(not(A), W, f), [C]), R) :-
-    gensym(w_, V),
-    shuffle([label(A, V, t)|X], Y),
-    tree(Y, C, [[W, V]|R]).
+tree([truthy(or(A, B))|X], node(truthy(or(A, B)), [L, R]), P) :-
+    shuffle([truthy(A)|X], Y1),
+    shuffle([truthy(B)|X], Y2),
+    tree(Y1, L, [truthy(or(A, B))|P]),
+    tree(Y2, R, [truthy(or(A, B))|P]).
 
-tree([label(A, W, t)|X], node(label(A, W, t), [C]), R) :-
-    atom(A), 
-    findall(L, (member([W, V], R), L=label(A, V, t)), Y),
-    append(X, Y, Z),
-    shuffle(Z, U),
-    tree(U, C, R).
+tree([falsy(or(A, B))|X], node(falsy(or(A, B)), [M]), P) :-
+    shuffle([falsy(A), falsy(B)|X], Y),
+    tree(Y, M, [falsy(or(A, B))|P]).
 
-tree([label(A, W, f)|X], node(label(A, W, f), [C]), R) :-
-    atom(A), 
-    tree(X, C, R).
+tree([truthy(imply(A, B))|X], node(truthy(imply(A, B)), [L, R]), P) :-
+    shuffle([falsy(A)|X], Y1),
+    shuffle([truthy(B)|X], Y2),
+    tree(Y1, L, [truthy(imply(A, B))|P]),
+    tree(Y2, R, [truthy(imply(A, B))|P]).
 
-tree([], end, _).
+tree([falsy(imply(A, B))|X], node(falsy(imply(A, B)), [M]), P) :-
+    shuffle([truthy(A), falsy(B)|X], Y),
+    include(truthy, Y, Z),
+    include(truthy, P, Q),
+    tree(Z, M, Q).
 
-path(node(L, Cs), [L|P]) :-
-    member(C, Cs),
-    path(C, P).
-path(end, []).
+tree([truthy(A)|X], node(truthy(A), [M]), P) :-
+    atom(A),
+    tree(X, M, [truthy(A)|P]).
 
-inconsistent(P) :-
-    member(label(A, W, t), P), 
-    member(label(A, W, f), P).
+tree([falsy(A)|X], node(falsy(A), [M]), P) :-
+    atom(A),
+    tree(X, M, [falsy(A)|P]).
 
-truthy(P, Q) :-
-    Q=label(P, w_0, t).
+tree([], open, _).
 
-falsy(P, Q) :-
-    Q=label(P, w_0, f).
+closed(node(_, X)) :-
+    forall(member(Y, X), closed(Y)).
 
-ipc_probable(Assumptions, Conclusions) :-
-    maplist(truthy, Assumptions, A),
-    maplist(falsy, Conclusions, C),
-    forall(member(D, C), (tree([D|A], T, []), forall(path(T, P), inconsistent(P)))).
+closed(close).
+
+prove(A, C) :-
+    maplist(truthy, A, X),
+    maplist(falsy, C, Y), 
+    forall(member(Z, Y), (tree([Z|X], T, []), closed(T))).
