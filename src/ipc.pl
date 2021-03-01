@@ -1,66 +1,114 @@
-/* 
- * This file is part of the solv distribution (https://github.com/tani/solv).
- * Copyright (c) 2021 TANIGUCHI Masaya.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
- * the Free Software Foundation, version 3.
- *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License 
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+% -*- mode: prolog -*-
+% 
+% This file is part of the solv distribution (https://github.com/tani/solv).
+% Copyright (c) 2021 TANIGUCHI Masaya.
+% 
+% This program is free software: you can redistribute it and/or modify  
+% it under the terms of the GNU General Public License as published by  
+% the Free Software Foundation, version 3.
+% 
+% This program is distributed in the hope that it will be useful, but 
+% WITHOUT ANY WARRANTY; without even the implied warranty of 
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+% General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License 
+% along with this program. If not, see <http://www.gnu.org/licenses/>.
+% 
 
 :- module(ipc, [ipc_probable/2]).
 :- use_module(library(lists)).
 
-path([[and(A, B), W, t]|X], [[and(A, B), W, t]|P]) :-
-	path([[A, W, t], [B, W, t]|X], P).
-path([[and(A, B), W, f]|X], [[and(A, B), W, f]|P]) :-
-	path([[A, W, f]|X], P);
-	path([[B, W, f]|X], P).
-path([[or(A, B), W, t]|X], [[or(A, B), W, t]|P]) :-
-	path([[A, W, t]|X], P);
-	path([[B, W, t]|X], P).
-path([[or(A, B), W, f]|X], [[or(A, B), W, f]|P]) :-
-	path([[A, W, f], [B, W, f]|X], P).
-path([[imply(A, B), W, t]|X], [[imply(A, B), W, t]|P]) :-
-	V is W+1,
-	(path([[A, V, f]|X], P);
-	 path([[B, V, t]|X], P)).
-path([[imply(A, B), W, f]|X], [[imply(A, B), W, f]|P]) :-
-	V is W+1,
-	path([[A, V, t], [B, V, f]|X], P).
-path([[not(A), W, t]|X], [[not(A), W, t]|P]) :-
-	V is W+1,
-	path([[A, V, f]|X], P).
-path([[not(A), W, f]|X], [[not(A), W, f]|P]) :-
-	V is W+1,
-	path([[A, V, t]|X], P).
-path([[A, W, t]|X], [[A, W, t]|P]) :-
-	atom(A), 
-	path(X, P).
-path([[A, W, f]|X], [[A, W, f]|P]) :-
-	atom(A), 
-	path(X, P).
-path([], []).
+shuffle(X, Y) :-
+    append([L, [M], R], X),
+    append([[M], L, R], Y).
+shuffle([], []).
+
+reach(S, S, R) :-
+    flatten(R, Ws),
+    list_to_set(Ws, Vs),
+    member(S, Vs).
+reach(S, T, R) :-
+    member([S, T], R).
+reach(S, T, R) :-
+    member([S, U], R),
+    reach(U, T, R).
+
+tree([label(and(A, B), W, t)|X], node(label(and(A, B), W, t), [C]), R) :-
+    shuffle([label(A, W, t), label(B, W, t)|X], Y),
+    tree(Y, C, R).
+
+tree([label(and(A, B), W, f)|X], node(label(and(A, B), W, f), [C1, C2]), R) :-
+    shuffle([label(A, W, f)|X], Y1),
+    shuffle([label(B, W, f)|X], Y2),
+    tree(Y1, C1, R),
+    tree(Y2, C2, R).
+
+tree([label(or(A, B), W, t)|X], node(label(or(A, B), W, t), [C1, C2]), R) :-
+    shuffle([label(A, W, t)|X], Y1),
+    shuffle([label(B, W, t)|X], Y2),
+    tree(Y1, C1, R),
+    tree(Y2, C2, R).
+
+tree([label(or(A, B), W, f)|X], node(label(or(A, B), W, f), [C]), R) :-
+    shuffle([label(A, W, f), label(B, W, f)|X], Y),
+    tree(Y, C, R).
+
+tree([label(imply(A, B), W, t)|X], node(label(imply(A, B), W, t), [C1, C2]), R) :-
+    findall(L, (reach(W, V, R), L=label(A, V, f)), Y1),
+    findall(L, (reach(W, V, R), L=label(B, V, t)), Y2),
+    append(X, Y1, Z1),
+    append(X, Y2, Z2),
+    shuffle(Z1, U1),
+    shuffle(Z2, U2),
+    tree(U1, C1, R),
+    tree(U2, C2, R).
+
+tree([label(imply(A, B), W, f)|X], node(label(imply(A, B), W, f), [C]), R) :-
+    gensym(w_, V),
+    shuffle([label(A, V, t), label(B, V, f)|X], Y),
+    tree(Y, C, [[W,V]|R]).
+
+tree([label(not(A), W, t)|X], node(label(not(A), W, t), [C]), R) :-
+    findall(L, (reach(W, V, R), L=label(A, V, f)), Y),
+    append(X, Y, Z),
+    shuffle(Z, U),
+    tree(U, C, R).
+
+tree([label(not(A), W, f)|X], node(label(not(A), W, f), [C]), R) :-
+    gensym(w_, V),
+    shuffle([label(A, V, t)|X], Y),
+    tree(Y, C, [[W, V]|R]).
+
+tree([label(A, W, t)|X], node(label(A, W, t), [C]), R) :-
+    atom(A), 
+    findall(L, (member([W, V], R), L=label(A, V, t)), Y),
+    append(X, Y, Z),
+    shuffle(Z, U),
+    tree(U, C, R).
+
+tree([label(A, W, f)|X], node(label(A, W, f), [C]), R) :-
+    atom(A), 
+    tree(X, C, R).
+
+tree([], end, _).
+
+path(node(L, Cs), [L|P]) :-
+    member(C, Cs),
+    path(C, P).
+path(end, []).
 
 inconsistent(P) :-
-	member([A, W, t], P), 
-	member([A, Z, f], P),
-	W =< Z.
+    member(label(A, W, t), P), 
+    member(label(A, W, f), P).
 
 truthy(P, Q) :-
-	Q=[P, 0, t].
+    Q=label(P, w_0, t).
 
 falsy(P, Q) :-
-	Q=[P, 0, f].
+    Q=label(P, w_0, f).
 
 ipc_probable(Assumptions, Conclusions) :-
-	maplist(truthy, Assumptions, A),
-	maplist(falsy, Conclusions, C),
-	forall(member(D, C), forall(path([D|A], P), inconsistent(P))).
+    maplist(truthy, Assumptions, A),
+    maplist(falsy, Conclusions, C),
+    forall(member(D, C), (tree([D|A], T, []), forall(path(T, P), inconsistent(P)))).
