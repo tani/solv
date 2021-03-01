@@ -1,52 +1,74 @@
+% -*- mode: prolog -*-
+%
+shuffle(X, Y) :-
+    append([L, [M], R], X),
+    append([[M], L, R], Y).
+shuffle([], []).
 
-/* 
- * This file is part of the solv distribution (https://github.com/tani/solv).
- * Copyright (c) 2021 TANIGUCHI Masaya.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
- * the Free Software Foundation, version 3.
- *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License 
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+tree([truthy(A)|_], node(truthy(A), [close]), P) :-
+    member(falsy(A), P), !.
 
-:- module(cpc, [cpc_probable/2]).
-:- use_module(library(lists)).
+tree([falsy(A)|_], node(falsy(A), [close]), P) :-
+    member(truthy(A), P), !.
 
-path([imply(A, B)|C], P) :-
-	path([not(A)|C], P);
-	path([B|C], P).
-path([not(imply(A, B))|C], P) :-
-	path([A,not(B)|C], P).
-path([or(A, B)|C], P) :-
-	path([A|C], P);
-	path([B|C], P).
-path([not(or(A, B))|C], P) :-
-	path([not(B),not(A)|C], P).
-path([not(not(A))|B], P) :-
-	path([A|B], P).
-path([and(A, B)|C], P) :-
-	path([A,B|C], P).
-path([not(and(A, B))|C], P) :-
-	path([not(A)|C], P);
-	path([not(B)|C], P).
-path([A|B], [A|P]) :-
-	atom(A),
-	path(B, P).
-path([not(A)|B], [not(A)|P]) :-
-	atom(A),
-	path(B, P).
-path([], []).
+tree([truthy(not(A))|X], node(truthy(not(A)), [M]), P) :-
+    shuffle([falsy(A)|X], Y),
+    tree(Y, M, [truthy(not(A))|P]).
 
-inconsistent(P) :-
-	member(A, P),
-	member(not(A), P).
+tree([falsy(not(A))|X], node(falsy(not(A)), [M]), P) :-
+    shuffle([truthy(A)|X], Y),
+    tree(Y, M, [falsy(not(A))|P]).
 
-cpc_probable(Assumptions, Conclusions) :-
-	forall(member(C, Conclusions), forall(path([not(C)|Assumptions], P), inconsistent(P))).
+tree([truthy(and(A, B))|X], node(truthy(and(A, B)), [M]), P) :-
+    shuffle([truthy(A), truthy(B)|X], Y),
+    tree(Y, M, [truthy(and(A, B))|P]).
+
+tree([falsy(and(A, B))|X], node(falsy(and(A, B)), [L, R]), P) :-
+    shuffle([falsy(A)|X], Y1),
+    shuffle([falsy(B)|X], Y2),
+    tree(Y1, L, [falsy(and(A, B))|P]),
+    tree(Y2, R, [falsy(and(A, B))|P]).
+
+tree([truthy(or(A, B))|X], node(truthy(or(A, B)), [L, R]), P) :-
+    shuffle([truthy(A)|X], Y1),
+    shuffle([truthy(B)|X], Y2),
+    tree(Y1, L, [truthy(or(A, B))|P]),
+    tree(Y2, R, [truthy(or(A, B))|P]).
+
+tree([falsy(or(A, B))|X], node(falsy(or(A, B)), [M]), P) :-
+    shuffle([truthy(A), truthy(B)|X], Y),
+    tree(Y, M, [falsy(or(A, B))|P]).
+
+tree([truthy(imply(A, B))|X], node(truthy(imply(A, B)), [L, R]), P) :-
+    shuffle([falsy(A)|X], Y1),
+    shuffle([truthy(B)|X], Y2),
+    tree(Y1, L, [truthy(imply(A, B))|P]),
+    tree(Y2, R, [truthy(imply(A, B))|P]).
+
+tree([falsy(imply(A, B))|X], node(falsy(imply(A, B)), [M]), P) :-
+    shuffle([truthy(A), falsy(B)|X], Y),
+    tree(Y, M, [falsy(imply(A, B))|P]).
+
+tree([truthy(A)|X], node(truthy(A), [M]), P) :-
+    atom(A),
+    tree(X, M, [truthy(A)|P]).
+
+tree([falsy(A)|X], node(falsy(A), [M]), P) :-
+    atom(A),
+    tree(X, M, [falsy(A)|P]).
+
+tree([], open, _).
+
+closed(node(_, X)) :-
+    forall(member(Y, X), closed(Y)).
+
+closed(close).
+
+truthy(X, Y) :- Y=truthy(X).
+
+falsy(X, Y) :- Y=falsy(X).
+
+prove(A, C) :-
+    maplist(truthy, A, X),
+    maplist(falsy, C, Y), 
+    forall(member(Z, Y), (tree([Z|X], T, []), closed(T))).
