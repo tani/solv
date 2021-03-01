@@ -17,6 +17,8 @@
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 % 
 
+:- module(cpc, [cpc_prove/2]).
+:- use_module(library(lists)).
 
 shuffle(X, Y) :-
     append([L, [M], R], X),
@@ -86,7 +88,7 @@ truthy(X, Y) :- Y=truthy(X).
 
 falsy(X, Y) :- Y=falsy(X).
 
-prove(A, C) :-
+cpc_prove(A, C) :-
     maplist(truthy, A, X),
     maplist(falsy, C, Y), 
     forall(member(Z, Y), (tree([Z|X], T, []), closed(T))).

@@ -17,6 +17,9 @@
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 % 
 
+:- module(ipc, [ipc_prove/2]).
+:- use_module(library(lists)).
+
 shuffle(X, Y) :-
     append([L, [M], R], X),
     append([[M], L, R], Y).
@@ -91,7 +94,7 @@ closed(node(_, X)) :-
 
 closed(close).
 
-prove(A, C) :-
+ipc_prove(A, C) :-
     maplist(truthy, A, X),
     maplist(falsy, C, Y), 
     forall(member(Z, Y), (tree([Z|X], T, []), closed(T))).

@@ -38,12 +38,12 @@ main([help|_]) :- !,
 
 main([ipc|Argv]) :-
 	maplist(term_to_atom, [Conclusion|Assumptions], Argv),
-	ipc_probable(Assumptions, [Conclusion])
+	ipc_prove(Assumptions, [Conclusion])
 	 -> (write(probable), halt(0))
           ; (write(unprobable), halt(1)).
 
 main([cpc|Argv]) :-
 	maplist(term_to_atom, [Conclusion|Assumptions], Argv),
-	cpc_probable(Assumptions, [Conclusion])
+	cpc_prove(Assumptions, [Conclusion])
 	 -> (write(probable), halt(0))
           ; (write(unprobable), halt(1)).
