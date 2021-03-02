@@ -30,7 +30,7 @@ simple(X, X).
 truthy(truthy(_)).
 truthy(X, truthy(X)).
 
-falsy(truthy(_)).
+falsy(falsy(_)).
 falsy(X, falsy(X)).
 
 tree([truthy(A)|_], node(truthy(A), [close]), P, _) :-
