@@ -64,7 +64,7 @@ tree([truthy(or(A, B))|X], node(truthy(or(A, B)), [L, R]), P, S) :-
     tree(Y2, R, [truthy(or(A, B))|P], S).
 
 tree([falsy(or(A, B))|X], node(falsy(or(A, B)), [M]), P, S) :-
-    call(S, [truthy(A), truthy(B)|X], Y),
+    call(S, [falsy(A), falsy(B)|X], Y),
     tree(Y, M, [falsy(or(A, B))|P], S).
 
 tree([truthy(imply(A, B))|X], node(truthy(imply(A, B)), [L, R]), P, S) :-
