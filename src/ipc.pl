@@ -17,7 +17,7 @@
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 % 
 
-:- module(ipc, [probable/3]).
+:- module(ipc, [probable/4]).
 :- use_module(library(lists)).
 
 shuffle(X, Y) :-
@@ -96,8 +96,8 @@ closed(node(_, X)) :-
 
 closed(close).
 
-probable(A, C, S) :-
+probable(A, C, S, R) :-
     maplist(truthy, A, X),
-    maplist(falsy, C, Y), 
-    forall(member(Z, Y), (tree([Z|X], T, [], S), closed(T))).
+    ((tree([falsy(C)|X], T, [], S), closed(T)) -> R = probable(T);
+     (tree([falsy(C)|X], T, [], S), \+ closed(T)) -> R = unprobable(T)).
 

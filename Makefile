@@ -1,6 +1,6 @@
 all: solv
 
-data: src/cpc.pl src/ipc.pl src/solv.pl
+data: src/cpc.pl src/ipc.pl src/solv.pl src/printer.pl
 	tar -zcf data $^
 
 solv: src/cli.sh data

@@ -20,18 +20,18 @@
                     session.consult(src, {success, error})
                 });
                 const assumptions = document.getElementById("assumptions").value;
-                const conclusions = document.getElementById("conclusions").value;
+                const conclusion = document.getElementById("conclusion").value;
                 const system = document.getElementById("system").value;
-                await new Promise((success, error) => session.query(`${system}:probable([${assumptions}], [${conclusions}], simple).`, {success, error}));
+                await new Promise((success, error) => session.query(`${system}:probable([${assumptions}], ${conclusion}, simple, _).`, {success, error}));
                 session.answer({
                     success(answer) {
-                        document.getElementById("result").value = `${assumptions} |--- ${conclusions}`;
+                        document.getElementById("result").value = `${assumptions} |--- ${conclusion}`;
                     },
                     error(error) {
                         alert(error);
                     },
                     fail() {
-                        document.getElementById("result").value = `${assumptions} |-/- ${conclusions}`;
+                        document.getElementById("result").value = `${assumptions} |-/- ${conclusion}`;
                     },
                     limit() {
                         alert("Limit exceeded. Please try to increase the limit or use the command line interface.")
@@ -56,7 +56,7 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text">Conclusions</span>
                 </div>
-                <input class="form-control" id="conclusions" type="text" value="a">
+                <input class="form-control" id="conclusion" type="text" value="a">
             </div>
             <div class="input-group mb-3">
                 <div class="input-group-prepend">

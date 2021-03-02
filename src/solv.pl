@@ -17,8 +17,9 @@
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 % 
 
-:- use_module('ipc.pl', [probable/3 as ipc_probable]).
-:- use_module('cpc.pl', [probable/3 as cpc_probable]).
+:- use_module('ipc.pl', [probable/4 as ipc_probable]).
+:- use_module('cpc.pl', [probable/4 as cpc_probable]).
+:- use_module('printer.pl', [print_tree/1]).
 :- initialization(main, main).
 
 main([help|_]) :- !,
@@ -38,12 +39,12 @@ main([help|_]) :- !,
 
 main([ipc|Argv]) :-
 	maplist(term_to_atom, [Conclusion|Assumptions], Argv),
-	ipc_probable(Assumptions, [Conclusion], shuffle)
-	 -> (write(probable), halt(0))
-        ; (write(unprobable), halt(1)).
+	ipc_probable(Assumptions, Conclusion, shuffle, R),
+	(R = probable(T) -> (print_tree(T), nl, writeln(probable), halt(0));
+	 R = unprobable(T) -> (print_tree(T), nl, writeln(unprobable), halt(1))).
 
 main([cpc|Argv]) :-
 	maplist(term_to_atom, [Conclusion|Assumptions], Argv),
-	cpc_probable(Assumptions, [Conclusion], shuffle)
-	 -> (write(probable), halt(0))
-        ; (write(unprobable), halt(1)).
+	cpc_probable(Assumptions, Conclusion, shuffle, R),
+	(R = probable(T) -> (print_tree(T), nl, writeln(probable), halt(0));
+	 R = unprobable(T) -> (print_tree(T), nl, writeln(unprobable), halt(1))).
