@@ -19,19 +19,28 @@
                     const src = await res.text();
                     session.consult(src, {success, error})
                 });
+                await new Promise(async (success, error) => {
+                    const res = await fetch('src/printer.pl');
+                    const src = await res.text();
+                    session.consult(src, {success, error})
+                });
                 const assumptions = document.getElementById("assumptions").value;
                 const conclusion = document.getElementById("conclusion").value;
                 const system = document.getElementById("system").value;
-                await new Promise((success, error) => session.query(`${system}:probable([${assumptions}], ${conclusion}, simple, _).`, {success, error}));
+                await new Promise((success, error) => session.query(`${system}:probable([${assumptions}], ${conclusion}, simple, R).`, {success, error}));
                 session.answer({
                     success(answer) {
-                        document.getElementById("result").value = `${assumptions} |--- ${conclusion}`;
+                        if (session.format_answer(answer).includes("unprobable")) {
+                            document.getElementById("result").value = `${assumptions} |-/- ${conclusion}`;
+                        } else {
+                            document.getElementById("result").value = `${assumptions} |--- ${conclusion}`;
+                        }
                     },
                     error(error) {
                         alert(error);
                     },
                     fail() {
-                        document.getElementById("result").value = `${assumptions} |-/- ${conclusion}`;
+                        document.getElementById("result").value = failed;
                     },
                     limit() {
                         alert("Limit exceeded. Please try to increase the limit or use the command line interface.")

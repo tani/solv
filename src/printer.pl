@@ -22,26 +22,26 @@
 print_tree(I, [node(L, C)]) :- !,
 	maplist(write, I),
 	write('┗━ '),
-	writeln(L),
+	write(L),nl,
 	append(I, ['   '], J),
 	print_tree(J, C).
 print_tree(I, [L]) :- !,
 	maplist(write, I),
 	write('┗━ '),
-	writeln(L).
+	write(L),nl.
 print_tree(I, [node(L, C)|N]) :- !,
 	maplist(write, I),
 	write('┣━ '),
-	writeln(L),
+	write(L),nl,
 	append(I, ['┃  '], J),
 	print_tree(J, C),
 	print_tree(I, N).
 print_tree(I, [L|N]) :- !,
 	maplist(write, I),
 	write('┣━ '),
-	writeln(L),
+	write(L),nl,
 	print_tree(I, N).
 print_tree(_, []).
 print_tree(node(L, C)) :- !,
-	writeln(L),
+	write(L),nl,
 	print_tree([], C).

@@ -33,71 +33,72 @@ truthy(X, truthy(X)).
 falsy(falsy(_)).
 falsy(X, falsy(X)).
 
-tree([truthy(A)|_], node(truthy(A), [close]), P, _) :-
+tree([truthy(A)|_], [node(close, [])], P, _) :-
     member(falsy(A), P), !.
 
-tree([falsy(A)|_], node(falsy(A), [close]), P, _) :-
+tree([falsy(A)|_], [node(close, [])], P, _) :-
     member(truthy(A), P), !.
 
-tree([truthy(not(A))|X], node(truthy(not(A)), [M]), P, S) :-
+tree([truthy(not(A))|X], [node([falsy(A)], C)], P, S) :-
     call(S, [falsy(A)|X], Y),
-    tree(Y, M, [truthy(not(A))|P], S).
+    tree(Y, C, [truthy(not(A))|P], S).
 
-tree([falsy(not(A))|X], node(falsy(not(A)), [M]), P, S) :-
+tree([falsy(not(A))|X], [node([truthy(A), exclude_falsy], C)], P, S) :-
     include(truthy, X, Y),
     include(truthy, P, Q),
     call(S, [truthy(A)|Y], Z),
-    tree(Z, M, Q, S).
+    tree(Z, C, Q, S).
 
-tree([truthy(and(A, B))|X], node(truthy(and(A, B)), [M]), P, S) :-
+tree([truthy(and(A, B))|X], [node([truthy(A), truthy(B)], C)], P, S) :-
     call(S, [truthy(A), truthy(B)|X], Y),
-    tree(Y, M, [truthy(and(A, B))|P], S).
+    tree(Y, C, [truthy(and(A, B))|P], S).
 
-tree([falsy(and(A, B))|X], node(falsy(and(A, B)), [L, R]), P, S) :-
+tree([falsy(and(A, B))|X], [node([falsy(A)], L), node([falsy(B)], R)], P, S) :-
     call(S, [falsy(A)|X], Y1),
     call(S, [falsy(B)|X], Y2),
     tree(Y1, L, [falsy(and(A, B))|P], S),
     tree(Y2, R, [falsy(and(A, B))|P], S).
 
-tree([truthy(or(A, B))|X], node(truthy(or(A, B)), [L, R]), P, S) :-
+tree([truthy(or(A, B))|X], [node([truthy(A)], L), node([truthy(B)], R)], P, S) :-
     call(S, [truthy(A)|X], Y1),
     call(S, [truthy(B)|X], Y2),
     tree(Y1, L, [truthy(or(A, B))|P], S),
     tree(Y2, R, [truthy(or(A, B))|P], S).
 
-tree([falsy(or(A, B))|X], node(falsy(or(A, B)), [M]), P, S) :-
+tree([falsy(or(A, B))|X], [node([falsy(A), falsy(B)], C)], P, S) :-
     call(S, [falsy(A), falsy(B)|X], Y),
-    tree(Y, M, [falsy(or(A, B))|P], S).
+    tree(Y, C, [falsy(or(A, B))|P], S).
 
-tree([truthy(imply(A, B))|X], node(truthy(imply(A, B)), [L, R]), P, S) :-
+tree([truthy(imply(A, B))|X], [node([falsy(A)], L), node([truthy(B)], R)], P, S) :-
     call(S, [falsy(A)|X], Y1),
     call(S, [truthy(B)|X], Y2),
     tree(Y1, L, [truthy(imply(A, B))|P], S),
     tree(Y2, R, [truthy(imply(A, B))|P], S).
 
-tree([falsy(imply(A, B))|X], node(falsy(imply(A, B)), [M]), P, S) :-
+tree([falsy(imply(A, B))|X], [node([truthy(A), falsy(B), exclude_falsy], C)], P, S) :-
     include(truthy, X, Y),
     include(truthy, P, Q),
     call(S, [truthy(A), falsy(B)|Y], Z),
-    tree(Z, M, Q, S).
+    tree(Z, C, Q, S).
 
-tree([truthy(A)|X], node(truthy(A), [M]), P, S) :-
+tree([truthy(A)|X], C, P, S) :-
     atom(A),
-    tree(X, M, [truthy(A)|P], S).
+    tree(X, C, [truthy(A)|P], S).
 
-tree([falsy(A)|X], node(falsy(A), [M]), P, S) :-
+tree([falsy(A)|X], C, P, S) :-
     atom(A),
-    tree(X, M, [falsy(A)|P], S).
+    tree(X, C, [falsy(A)|P], S).
 
-tree([], open, _, _).
+tree([], [node(open, [])], _, _).
+
+closed(node(close, [])) :- !, true.
+
+closed(node(open, [])) :- !, fail.
 
 closed(node(_, X)) :-
     forall(member(Y, X), closed(Y)).
 
-closed(close).
-
 probable(A, C, S, R) :-
     maplist(truthy, A, X),
-    ((tree([falsy(C)|X], T, [], S), closed(T)) -> R = probable(T);
-     (tree([falsy(C)|X], T, [], S), \+ closed(T)) -> R = unprobable(T)).
-
+    ((tree([falsy(C)|X], B, [], S), T=node([falsy(C)|X], B), closed(T)) -> R = probable(T);
+     (tree([falsy(C)|X], B, [], S), T=node([falsy(C)|X], B), \+ closed(T)) -> R = unprobable(T)).
