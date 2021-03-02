@@ -42,9 +42,9 @@ tree([truthy(not(A))|X], node(truthy(not(A)), [M]), P) :-
     tree(Y, M, [truthy(not(A))|P]).
 
 tree([falsy(not(A))|X], node(falsy(not(A)), [M]), P) :-
-    shuffle([truthy(A)|X], Y),
-    include(truthy, Y, Z),
+    include(truthy, X, Y),
     include(truthy, P, Q),
+    shuffle([truthy(A)|Y], Z),
     tree(Z, M, Q).
 
 tree([truthy(and(A, B))|X], node(truthy(and(A, B)), [M]), P) :-
@@ -74,9 +74,9 @@ tree([truthy(imply(A, B))|X], node(truthy(imply(A, B)), [L, R]), P) :-
     tree(Y2, R, [truthy(imply(A, B))|P]).
 
 tree([falsy(imply(A, B))|X], node(falsy(imply(A, B)), [M]), P) :-
-    shuffle([truthy(A), falsy(B)|X], Y),
-    include(truthy, Y, Z),
+    include(truthy, X, Y),
     include(truthy, P, Q),
+    shuffle([truthy(A), falsy(B)|Y], Z),
     tree(Z, M, Q).
 
 tree([truthy(A)|X], node(truthy(A), [M]), P) :-
