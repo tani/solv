@@ -10,12 +10,12 @@
                 const limit = document.getElementById("limit").value;
                 const session = pl.create(limit);
                 await new Promise(async (success, error) => {
-                    const res = await fetch('ipc.pl');
+                    const res = await fetch('src/ipc.pl');
                     const src = await res.text();
                     session.consult(src, {success, error})
                 });
                 await new Promise(async (success, error) => {
-                    const res = await fetch('cpc.pl');
+                    const res = await fetch('src/cpc.pl');
                     const src = await res.text();
                     session.consult(src, {success, error})
                 });
