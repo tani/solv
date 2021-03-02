@@ -17,8 +17,8 @@
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 % 
 
-:- use_module('ipc.pl').
-:- use_module('cpc.pl').
+:- use_module('ipc.pl', [probable/3 as ipc_probable]).
+:- use_module('cpc.pl', [probable/3 as cpc_probable]).
 :- initialization(main, main).
 
 main([help|_]) :- !,
@@ -38,12 +38,12 @@ main([help|_]) :- !,
 
 main([ipc|Argv]) :-
 	maplist(term_to_atom, [Conclusion|Assumptions], Argv),
-	ipc_prove(Assumptions, [Conclusion])
+	ipc_probable(Assumptions, [Conclusion], shuffle)
 	 -> (write(probable), halt(0))
-          ; (write(unprobable), halt(1)).
+        ; (write(unprobable), halt(1)).
 
 main([cpc|Argv]) :-
 	maplist(term_to_atom, [Conclusion|Assumptions], Argv),
-	cpc_prove(Assumptions, [Conclusion])
+	cpc_probable(Assumptions, [Conclusion], shuffle)
 	 -> (write(probable), halt(0))
-          ; (write(unprobable), halt(1)).
+        ; (write(unprobable), halt(1)).

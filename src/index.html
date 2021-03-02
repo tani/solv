@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Tableaux System</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.3/dist/flatly/bootstrap.min.css">
+        <script src="https://cdn.jsdelivr.net/combine/npm/tau-prolog@0.3.0/modules/core.min.js,npm/tau-prolog@0.3.0/modules/lists.js"></script>
+        <script>
+            async function onClick() {
+                const limit = document.getElementById("limit").value;
+                const session = pl.create(limit);
+                await new Promise(async (success, error) => {
+                    const res = await fetch('ipc.pl');
+                    const src = await res.text();
+                    session.consult(src, {success, error})
+                });
+                await new Promise(async (success, error) => {
+                    const res = await fetch('cpc.pl');
+                    const src = await res.text();
+                    session.consult(src, {success, error})
+                });
+                const assumptions = document.getElementById("assumptions").value;
+                const conclusions = document.getElementById("conclusions").value;
+                const system = document.getElementById("system").value;
+                await new Promise((success, error) => session.query(`${system}:probable([${assumptions}], [${conclusions}], simple).`, {success, error}));
+                session.answer({
+                    success(answer) {
+                        document.getElementById("result").value = `${assumptions} |--- ${conclusions}`;
+                    },
+                    error(error) {
+                        alert(error);
+                    },
+                    fail() {
+                        document.getElementById("result").value = `${assumptions} |-/- ${conclusions}`;
+                    },
+                    limit() {
+                        alert("Limit exceeded. Please try to increase the limit or use the command line interface.")
+                    }
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>My Tableaux</h1>
+        </header>
+        <main class="container">
+            <p>This system supports; <code>and</code>, <code>or</code>, <code>not</code>, and <code>imply</code>.</p>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Assumptions</span>
+                </div>
+                <input class="form-control" id="assumptions" type="text" value="and(a,b)">
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Conclusions</span>
+                </div>
+                <input class="form-control" id="conclusions" type="text" value="a">
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="system">System</label>
+                </div>
+                <select class="form-control" id="system">
+                    <option selected value="cpc">Classical Logic (CPC, CL)</option>
+                    <option selected value="ipc">Intuitionistic Logic (IPC, IL, Int, H)</option>
+                </select>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="limit">Limit</label>
+                </div>
+                <input class="form-control" id="limit" type="number" value="1000">
+            </div>
+            <div class="input-group mb-3 d-flex justify-content-end">
+                <button class="btn btn-primary" onclick="onClick()">Prove</button>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Result</span>
+                </div>
+                <input class="form-control" id="result" type="text" value="">
+            </div>
+        </main>
+        <footer class="container">
+            <p>Copyright &copy; TANIGUCHI Masaya All Rights Reserved</p>
+        </footer>
+    </body>
+</html>
