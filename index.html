@@ -4,7 +4,75 @@
         <meta charset="UTF-8">
         <title>Sol V: Tabeaux System</title>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.3/dist/flatly/bootstrap.min.css">
-        <script src="https://cdn.jsdelivr.net/combine/npm/tau-prolog@0.3.0/modules/core.min.js,npm/tau-prolog@0.3.0/modules/lists.js"></script>
+        <script src="https://cdn.jsdelivr.net/combine/npm/tau-prolog@0.3.0/modules/core.min.js,npm/tau-prolog@0.3.0/modules/lists.js,npm/tau-prolog@0.3.0/modules/charsio.js,npm/tau-prolog@0.3.0/modules/dom.js"></script>
+        <script type="text/prolog" id="script.pl">
+         :- use_module(library(charsio)).
+         :- use_module(library(dom)).
+         :- use_module(library(lists)).
+         print_tree(unprobable(T)) :- get_by_id(tree, E), html(E, ''), print_tree(T, E).
+         print_tree(probable(T)) :- get_by_id(tree, E), html(E, ''), print_tree(T, E).
+         print_tree(node(Label, Children), E) :- create(li, L), write_to_chars(Label, Chars), atom_chars(Atom, Chars), html(L, Atom), append_child(E, L), create(ul, S), append_child(L, S), forall(member(C, Children), print_tree(C, S)).
+        </script>
+        <style>
+         /* ref: https://chibashi.me/development/html-css/css-treestructure/ */
+         #tree-title {
+	         border: #ced4da 1px solid;
+	         border-radius: 5px 5px 0 0;
+	         color: #7b8a8b;
+             background-color: #ecf0f1;
+             padding: 5px;
+         }
+         #tree-container {
+	         border: #ced4da 1px solid;
+	         border-radius: 0 0 5px 5px;
+	         color: #7b8a8b;
+             min-height: 100px;
+         }
+         #tree-container ul {
+             list-style-type: none;
+             margin: 0 0 0 15px;
+             padding: 0;
+             position: relative;
+         }
+         #tree-container ul li {
+             position: relative;
+             margin: 0;
+             padding: 7px 20px;
+         }
+         #tree-container ul li:before {
+             content: "";
+             display: block;
+             position: absolute;
+             top: 18px;
+             left: 0;
+             width: 13px;
+             height: 0;
+             border-top: 1px solid #7b8a8b;
+         }
+         #tree-container ul li:after {
+             content: "";
+             display: block;
+             position: absolute;
+             top: 0;
+             bottom: 0;
+             left: 0;
+             width: 0;
+             height: 100%;
+             border-left: 1px solid #7b8a8b;
+         }
+         #tree-container ul li:last-child:after {
+             height: 18px;
+         }
+
+         #tree-container > ul > li:before,
+         #tree-container > ul > li:after {
+             /* 最上位も線を表示する時はコメント化 */
+             border: none;
+         }
+         #tree-container i {
+             margin-right: 8px;
+         }
+        </style>
         <script>
             async function onClick() {
                 const limit = document.getElementById("limit").value;
@@ -20,14 +88,12 @@
                     session.consult(src, {success, error})
                 });
                 await new Promise(async (success, error) => {
-                    const res = await fetch('src/printer.pl');
-                    const src = await res.text();
-                    session.consult(src, {success, error})
+                    session.consult("script.pl", {success, error})
                 });
                 const assumptions = document.getElementById("assumptions").value;
                 const conclusion = document.getElementById("conclusion").value;
                 const system = document.getElementById("system").value;
-                await new Promise((success, error) => session.query(`${system}:probable([${assumptions}], ${conclusion}, simple, R).`, {success, error}));
+                await new Promise((success, error) => session.query(`${system}:probable([${assumptions}], ${conclusion}, simple, R), print_tree(R).`, {success, error}));
                 session.answer({
                     success(answer) {
                         if (session.format_answer(answer).includes("unprobable")) {
@@ -90,6 +156,10 @@
                     <span class="input-group-text">Result</span>
                 </div>
                 <input class="form-control" id="result" type="text" value="">
+            </div>
+            <div id="tree-title">Tree</div>
+            <div id="tree-container">
+                <ul id="tree"></ul>
             </div>
         </main>
         <footer class="container">
