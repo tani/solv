@@ -17,8 +17,21 @@
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 % 
 
+%-gnu
 :- module(ipc, [probable/4]).
 :- use_module(library(lists)).
+%-gnu
+
+%-swi
+foldl(_,[],V,V).
+foldl(Goal,[H|T],V0,V) :- call(Goal,H,V0,V1),foldl(Goal,T,V1,V).
+
+append(X,L) :- foldl(append,X,[],L).
+
+include(_,[],[]).
+include(P,[X|Xs],[X|S]) :- call(P,X),!,include(P,Xs,S).
+include(P,[_|Xs],S) :- include(P,Xs,S).
+%-swi
 
 shuffle(X, Y) :-
     append([L, [M], R], X),

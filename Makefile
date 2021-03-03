@@ -1,6 +1,13 @@
 all: solv
 
-data: src/cpc.pl src/ipc.pl src/solv.pl src/printer.pl
+%.swi: %.pl
+	cat $^ | perl -nle 'print if not /%-swi/ ... /%-swi/' > $@
+
+%.pro: %.pl
+	cat $^ | perl -nle 'print if not /%-gnu/ ... /%-gnu/' > $@
+
+data: src/cpc.swi src/ipc.swi src/solv.swi src/printer.swi
+	chmod +x src/solv.swi
 	tar -zcf data $^
 
 solv: src/cli.sh data
@@ -10,4 +17,4 @@ solv: src/cli.sh data
 .PHONY: clean
 
 clean:
-	rm data solv
+	rm data solv src/*.swi src/*.pro

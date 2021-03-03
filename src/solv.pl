@@ -17,9 +17,9 @@
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 % 
 
-:- use_module('ipc.pl', [probable/4 as ipc_probable]).
-:- use_module('cpc.pl', [probable/4 as cpc_probable]).
-:- use_module('printer.pl', [print_tree/1]).
+:- use_module('ipc.swi', [probable/4 as ipc_probable]).
+:- use_module('cpc.swi', [probable/4 as cpc_probable]).
+:- use_module('printer.swi', [print_tree/1]).
 :- initialization(main, main).
 
 main([help|_]) :- !,

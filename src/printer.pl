@@ -17,31 +17,33 @@
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 % 
 
+%-gnu
 :- module(printer, [print_tree/1]).
+%-gnu
 
 print_tree(I, [node(L, C)]) :- !,
 	maplist(write, I),
 	write('┗━ '),
-	write(L),nl,
+	writeln(L),
 	append(I, ['   '], J),
 	print_tree(J, C).
 print_tree(I, [L]) :- !,
 	maplist(write, I),
 	write('┗━ '),
-	write(L),nl.
+	write(L), nl.
 print_tree(I, [node(L, C)|N]) :- !,
 	maplist(write, I),
 	write('┣━ '),
-	write(L),nl,
+	writeln(L),
 	append(I, ['┃  '], J),
 	print_tree(J, C),
 	print_tree(I, N).
 print_tree(I, [L|N]) :- !,
 	maplist(write, I),
 	write('┣━ '),
-	write(L),nl,
+	writeln(L),
 	print_tree(I, N).
 print_tree(_, []).
 print_tree(node(L, C)) :- !,
-	write(L),nl,
+	writeln(L),
 	print_tree([], C).
