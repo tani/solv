@@ -6,11 +6,11 @@ Thus, it might be slow if we input the large proposition.
 ## Example
 
 ```
-$ solv ipc 'p' 'not(not(p))'
+$ solv ipc 'p' 'a, q=>p'
 unprobable
 $ echo $? # Exit status
 1
-$ solv cpc 'p' 'not(not(p))'
+$ solv cpc 'p' 'a, a=>p'
 probable
 $ echo $? # Exit status
 0
