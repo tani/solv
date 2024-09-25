@@ -3,6 +3,9 @@
     <head>
         <meta charset="UTF-8">
         <title>Sol V: Tabeaux System</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.3/dist/flatly/bootstrap.min.css">
         <script src="https://cdn.jsdelivr.net/combine/npm/tau-prolog@0.3.0/modules/core.min.js,npm/tau-prolog@0.3.0/modules/lists.js,npm/tau-prolog@0.3.0/modules/charsio.js,npm/tau-prolog@0.3.0/modules/dom.js"></script>
         <script type="text/prolog" id="script.pl">
@@ -14,18 +17,21 @@
          print_tree(node(Label, Children), E) :- create(li, L), write_to_chars(Label, Chars), atom_chars(Atom, Chars), html(L, Atom), append_child(E, L), create(ul, S), append_child(L, S), forall(member(C, Children), print_tree(C, S)).
         </script>
         <style>
-         /* ref: https://chibashi.me/development/html-css/css-treestructure/ */
+         input,code,#tree {
+	     font-family: 'Fira Code', monospace;
+	 }
+         /* ref: https://chibashi.me/development/html-css/css-treestructure/ */	 
          #tree-title {
-	         border: #ced4da 1px solid;
-	         border-radius: 5px 5px 0 0;
-	         color: #7b8a8b;
+	     border: #ced4da 1px solid;
+	     border-radius: 5px 5px 0 0;
+	     color: #7b8a8b;
              background-color: #ecf0f1;
              padding: 5px;
          }
          #tree-container {
-	         border: #ced4da 1px solid;
-	         border-radius: 0 0 5px 5px;
-	         color: #7b8a8b;
+	     border: #ced4da 1px solid;
+	     border-radius: 0 0 5px 5px;
+	     color: #7b8a8b;
              min-height: 100px;
          }
          #tree-container ul {
