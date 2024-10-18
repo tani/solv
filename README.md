@@ -7,11 +7,11 @@ Thus, it might be slow if we input the large proposition.
 
 ```
 $ solv ipc 'p' 'a, q=>p'
-unprobable
+unprovable
 $ echo $? # Exit status
 1
 $ solv cpc 'p' 'a, a=>p'
-probable
+provable
 $ echo $? # Exit status
 0
 ```

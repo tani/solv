@@ -60,7 +60,7 @@ let rec isClosed tree =
     | Close -> true
     | Open -> false
 
-let isProbable r a c = r (Falsy c :: List.map Truthy a) [] |> isClosed
+let isprovable r a c = r (Falsy c :: List.map Truthy a) [] |> isClosed
 
 let pFormula, pFormulaRef = createParserForwardedToRef()
 
@@ -110,10 +110,10 @@ pFormulaRef := pVar <|> between (pchar '(') (pchar ')') (choice [pNot; pAnd; pOr
 let testp calc conc assm =
     match ((run pFormula conc), (run pFormulae assm)) with
     | (Success (conclusion, _, _), Success (assumptions, _, _)) ->
-        if (isProbable calc assumptions conclusion) then
-            printfn "probable"
+        if (isprovable calc assumptions conclusion) then
+            printfn "provable"
         else
-            printfn "unprobable"
+            printfn "unprovable"
     | (Failure (msg, _, _), _) | (_, Failure (msg, _, _)) ->
         printfn "Failure: %s" msg
 

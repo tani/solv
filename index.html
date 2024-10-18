@@ -12,8 +12,8 @@
          :- use_module(library(charsio)).
          :- use_module(library(dom)).
          :- use_module(library(lists)).
-         print_tree(unprobable(T)) :- get_by_id(tree, E), html(E, ''), print_tree(T, E).
-         print_tree(probable(T)) :- get_by_id(tree, E), html(E, ''), print_tree(T, E).
+         print_tree(unprovable(T)) :- get_by_id(tree, E), html(E, ''), print_tree(T, E).
+         print_tree(provable(T)) :- get_by_id(tree, E), html(E, ''), print_tree(T, E).
          print_tree(node(Label, Children), E) :- create(li, L), write_to_chars(Label, Chars), atom_chars(Atom, Chars), html(L, Atom), append_child(E, L), create(ul, S), append_child(L, S), forall(member(C, Children), print_tree(C, S)).
         </script>
         <style>
@@ -99,10 +99,10 @@
                 const assumptions = document.getElementById("assumptions").value;
                 const conclusion = document.getElementById("conclusion").value;
                 const system = document.getElementById("system").value;
-                await new Promise((success, error) => session.query(`${system}:probable([${assumptions}], ${conclusion}, simple, R), print_tree(R).`, {success, error}));
+                await new Promise((success, error) => session.query(`${system}:provable([${assumptions}], ${conclusion}, simple, R), print_tree(R).`, {success, error}));
                 session.answer({
                     success(answer) {
-                        if (session.format_answer(answer).includes("unprobable")) {
+                        if (session.format_answer(answer).includes("unprovable")) {
                             document.getElementById("result").value = `${assumptions} |-/- ${conclusion}`;
                         } else {
                             document.getElementById("result").value = `${assumptions} |--- ${conclusion}`;

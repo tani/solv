@@ -17,8 +17,8 @@
 % along with this program. If not, see <http://www.gnu.org/licenses/>.
 % 
 
-:- use_module('ipc.swi', [probable/4 as ipc_probable]).
-:- use_module('cpc.swi', [probable/4 as cpc_probable]).
+:- use_module('ipc.swi', [provable/4 as ipc_provable]).
+:- use_module('cpc.swi', [provable/4 as cpc_provable]).
 :- use_module('printer.swi', [print_tree/1]).
 :- initialization(main, main).
 
@@ -39,12 +39,12 @@ main([help|_]) :- !,
 
 main([ipc|Argv]) :-
 	maplist(term_to_atom, [Conclusion|Assumptions], Argv),
-	ipc_probable(Assumptions, Conclusion, shuffle, R),
-	(R = probable(T) -> (print_tree(T), nl, writeln(probable), halt(0));
-	 R = unprobable(T) -> (print_tree(T), nl, writeln(unprobable), halt(1))).
+	ipc_provable(Assumptions, Conclusion, shuffle, R),
+	(R = provable(T) -> (print_tree(T), nl, writeln(provable), halt(0));
+	 R = unprovable(T) -> (print_tree(T), nl, writeln(unprovable), halt(1))).
 
 main([cpc|Argv]) :-
 	maplist(term_to_atom, [Conclusion|Assumptions], Argv),
-	cpc_probable(Assumptions, Conclusion, shuffle, R),
-	(R = probable(T) -> (print_tree(T), nl, writeln(probable), halt(0));
-	 R = unprobable(T) -> (print_tree(T), nl, writeln(unprobable), halt(1))).
+	cpc_provable(Assumptions, Conclusion, shuffle, R),
+	(R = provable(T) -> (print_tree(T), nl, writeln(provable), halt(0));
+	 R = unprovable(T) -> (print_tree(T), nl, writeln(unprovable), halt(1))).

@@ -18,7 +18,7 @@
 % 
 
 %-gnu
-:- module(ipc, [probable/4]).
+:- module(ipc, [provable/4]).
 :- use_module(library(lists)).
 %-gnu
 
@@ -114,7 +114,7 @@ closed(node(open, [])) :- !, fail.
 closed(node(_, X)) :-
     forall(member(Y, X), closed(Y)).
 
-probable(A, C, S, R) :-
+provable(A, C, S, R) :-
     maplist(truthy, A, X),
-    ((tree([falsy(C)|X], B, [], S), T=node([falsy(C)|X], B), closed(T)) -> R = probable(T);
-     (tree([falsy(C)|X], B, [], S), T=node([falsy(C)|X], B), \+ closed(T)) -> R = unprobable(T)).
+    ((tree([falsy(C)|X], B, [], S), T=node([falsy(C)|X], B), closed(T)) -> R = provable(T);
+     (tree([falsy(C)|X], B, [], S), T=node([falsy(C)|X], B), \+ closed(T)) -> R = unprovable(T)).
